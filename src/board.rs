@@ -6,7 +6,7 @@ use cell::CellState;
 use simulator::flip_stones;
 
 pub struct Board {
-    pub cells: [Cell; 64],
+    pub cells: Vec<Cell>,
 }
 
 impl Board {
@@ -16,8 +16,8 @@ impl Board {
         }
     }
 
-    fn initialize_cells () -> [Cell; 64] {
-        let mut cells = [Cell::new(CellState::EMPTY); 64];
+    fn initialize_cells () -> Vec<Cell> {
+        let mut cells = vec![Cell::new(CellState::EMPTY); 64];
         cells[27] = Cell::new(CellState::BLACK);
         cells[36] = Cell::new(CellState::BLACK);
         cells[28] = Cell::new(CellState::WHITE);
@@ -26,7 +26,7 @@ impl Board {
     }
 
     pub fn put_stone (&mut self, position: usize, stone: CellState) {
-        self.cells = flip_stones(self.cells, position, stone);
+        self.cells = flip_stones(&self.cells, position, stone);
     }
 }
 

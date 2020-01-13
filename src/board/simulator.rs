@@ -28,7 +28,7 @@ impl Direction {
     }
 }
 
-pub fn get_available_positions (cells: [Cell; 64], stone: CellState) -> Vec<usize> {
+pub fn get_available_positions (cells: &Vec<Cell>, stone: CellState) -> Vec<usize> {
     let empty_positions: Vec<usize> = cells.iter()
         .enumerate()
         .filter_map(
@@ -46,10 +46,9 @@ pub fn get_available_positions (cells: [Cell; 64], stone: CellState) -> Vec<usiz
         .collect()
 }
 
-pub fn flip_stones (cells: [Cell; 64], position: usize, stone: CellState) -> [Cell; 64] {
+pub fn flip_stones (cells: &Vec<Cell>, position: usize, stone: CellState) -> Vec<Cell> {
+    let flipped_positions = get_flipped_positions(cells, position, stone);
     let mut clone_cells = cells.clone();
-
-    let flipped_positions = get_flipped_positions(clone_cells, position, stone);
     for &flipped_position in flipped_positions.iter() {
         clone_cells[flipped_position] = Cell::new(stone);
     }
@@ -57,11 +56,11 @@ pub fn flip_stones (cells: [Cell; 64], position: usize, stone: CellState) -> [Ce
     clone_cells
 }
 
-pub fn is_game_end (cells: [Cell; 64]) -> bool {
+pub fn is_game_end (cells: Vec<Cell>) -> bool {
     cells.iter().map(|&c| c.state).collect::<Vec<CellState>>().contains(&CellState::EMPTY) == false
 }
 
-fn can_put_stone (cells: [Cell; 64], position: usize, stone: CellState) -> bool {
+fn can_put_stone (cells: &Vec<Cell>, position: usize, stone: CellState) -> bool {
     let cell = cells[position];
 
     if cell.state != CellState::EMPTY {
@@ -74,7 +73,7 @@ fn can_put_stone (cells: [Cell; 64], position: usize, stone: CellState) -> bool 
     }
 }
 
-fn get_flipped_positions (cells: [Cell; 64], position: usize, stone: CellState) -> Vec<usize> {
+fn get_flipped_positions (cells: &Vec<Cell>, position: usize, stone: CellState) -> Vec<usize> {
     Direction::directions()
         .iter()
         .flat_map(
@@ -83,12 +82,12 @@ fn get_flipped_positions (cells: [Cell; 64], position: usize, stone: CellState) 
         .collect()
 }
 
-fn count_flipped_stone (cells: [Cell; 64], position: usize, stone: CellState) -> usize {
+fn count_flipped_stone (cells: &Vec<Cell>, position: usize, stone: CellState) -> usize {
     let positions = get_flipped_positions(cells, position, stone);
     positions.len()
 }
 
-fn get_flipped_direction_positions (cells: [Cell; 64], position: usize, direction: i8, stone: CellState, mut positions: Vec<usize>) -> Vec<usize> {
+fn get_flipped_direction_positions (cells: &Vec<Cell>, position: usize, direction: i8, stone: CellState, mut positions: Vec<usize>) -> Vec<usize> {
     if is_out_of_board(position, direction) {
         return vec![];
     }
@@ -158,7 +157,7 @@ mod tests {
     //     [0, 0, 0, 0, 0, 0, 0, 0],
     // ];
 
-    fn create_cells (cells: Vec<[usize; 8]>) -> [Cell; 64] {
+    fn create_cells (cells: Vec<[usize; 8]>) -> Vec<Cell> {
         cells.iter()
              .flatten()
              .map(
@@ -169,12 +168,10 @@ mod tests {
                     _ => panic!("盤面に不正な値が指定されました。0, 1, 2 で値をしてください。")
                 }
             )
-            .collect::<ArrayVec<[Cell; 64]>>()
-            .into_inner()
-            .unwrap_or([Cell::new(CellState::EMPTY); 64])
+            .collect::<Vec<Cell>>()
     }
 
-    fn parse_cells_to_state_vec (cells: [Cell; 64]) -> Vec<CellState> {
+    fn parse_cells_to_state_vec (cells: Vec<Cell>) -> Vec<CellState> {
         cells.iter()
              .map( |&c| c.state )
              .collect()
@@ -221,7 +218,7 @@ mod tests {
         ]);
 
         assert_eq!(
-            get_flipped_direction_positions(cells, 42, Direction::RIGHT_UP, CellState::WHITE, vec![]),
+            get_flipped_direction_positions(&cells, 42, Direction::RIGHT_UP, CellState::WHITE, vec![]),
             vec![35]
         );
     }
@@ -240,7 +237,7 @@ mod tests {
         ]);
 
         assert_eq!(
-            get_flipped_positions(cells, 42, CellState::WHITE),
+            get_flipped_positions(&cells, 42, CellState::WHITE),
             vec![35]
         );
     }
@@ -259,7 +256,7 @@ mod tests {
         ]);
 
         assert_eq!(
-            count_flipped_stone(cells, 42, CellState::WHITE),
+            count_flipped_stone(&cells, 42, CellState::WHITE),
             1
         );
     }
@@ -278,7 +275,7 @@ mod tests {
         ]);
 
         assert_eq!(
-            can_put_stone(cells, 42, CellState::WHITE),
+            can_put_stone(&cells, 42, CellState::WHITE),
             true
         );
     }
@@ -297,7 +294,7 @@ mod tests {
         ]);
 
         let expected = vec![42, 43, 44, 45, 46];
-        assert_eq!(get_available_positions(cells, CellState::WHITE), expected);
+        assert_eq!(get_available_positions(&cells, CellState::WHITE), expected);
     }
 
     #[test]
@@ -325,7 +322,7 @@ mod tests {
         ]);
 
         assert_eq!(
-            parse_cells_to_state_vec(flip_stones(cells, 26, CellState::WHITE)),
+            parse_cells_to_state_vec(flip_stones(&cells, 26, CellState::WHITE)),
             parse_cells_to_state_vec(expected)
         );
     }
