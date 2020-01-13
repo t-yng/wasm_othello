@@ -57,6 +57,10 @@ pub fn flip_stones (cells: [Cell; 64], position: usize, stone: CellState) -> [Ce
     clone_cells
 }
 
+pub fn is_game_end (cells: [Cell; 64]) -> bool {
+    cells.iter().map(|&c| c.state).collect::<Vec<CellState>>().contains(&CellState::EMPTY) == false
+}
+
 fn can_put_stone (cells: [Cell; 64], position: usize, stone: CellState) -> bool {
     let cell = cells[position];
 
@@ -168,6 +172,12 @@ mod tests {
             .collect::<ArrayVec<[Cell; 64]>>()
             .into_inner()
             .unwrap_or([Cell::new(CellState::EMPTY); 64])
+    }
+
+    fn parse_cells_to_state_vec (cells: [Cell; 64]) -> Vec<CellState> {
+        cells.iter()
+             .map( |&c| c.state )
+             .collect()
     }
 
     #[test]
@@ -288,5 +298,64 @@ mod tests {
 
         let expected = vec![42, 43, 44, 45, 46];
         assert_eq!(get_available_positions(cells, CellState::WHITE), expected);
+    }
+
+    #[test]
+    fn flip_stones_test () {
+        let cells = create_cells(vec![
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 2, 1, 0, 0, 0],
+            [0, 0, 1, 2, 1, 0, 0, 0],
+            [0, 0, 2, 2, 2, 2, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+        ]);
+
+        let expected = create_cells(vec![
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 2, 1, 0, 0, 0],
+            [0, 0, 1, 1, 1, 0, 0, 0],
+            [0, 0, 1, 2, 2, 2, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+        ]);
+
+        assert_eq!(
+            parse_cells_to_state_vec(flip_stones(cells, 26, CellState::WHITE)),
+            parse_cells_to_state_vec(expected)
+        );
+    }
+
+    #[test]
+    fn is_game_end_test () {
+        let end_cells = create_cells(vec![
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 1, 2, 2, 2],
+            [2, 2, 2, 1, 1, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+        ]);
+
+        let not_end_cells = create_cells(vec![
+            [0, 1, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 1, 2, 2, 2],
+            [2, 2, 2, 1, 1, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2],
+        ]);
+
+
+        assert_eq!(is_game_end(end_cells), true);
+        assert_eq!(is_game_end(not_end_cells), false);
     }
 }
